@@ -39,7 +39,7 @@ def createdb():
 
     conn = psycopg2.connect(database="aa_sample_db", 
                             user='postgres', 
-                            password='amokachi', 
+                            password='YW1va2FjaGk=', 
                             host='10.0.0.129', 
                             port= '5432')
 
@@ -53,7 +53,7 @@ def createdb():
 
     conn = psycopg2.connect(database="aa_sample_db", 
                             user='postgres', 
-                            password='amokachi', 
+                            password='YW1va2FjaGk=', 
                             host='10.0.0.129', 
                             port= '5432')
 
@@ -117,17 +117,15 @@ def loaddata():
 
 #####################################################################################
 def trashdb():
-    conn = psycopg2.connect(database="aa_sample_db", 
+    conn = psycopg2.connect(database="postgres", 
                             user='postgres', 
-                            password='amokachi', 
+                            password='YW1va2FjaGk=', 
                             host='10.0.0.129', 
                             port= '5432')
 
-    #conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cursor = conn.cursor()
-    cursor.execute(
-        """ DROP DATABASE aa_sample_db WITH (FORCE);
-        """ )
+    cursor.execute(sql.SQL("DROP DATABASE aa_sample_db WITH (FORCE);"))
     conn.commit()
     conn.close() 
 
