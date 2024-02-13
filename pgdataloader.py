@@ -7,6 +7,12 @@ from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 fake = Faker()
 
+gluserer = input('Enter Username = ')
+glpasswd = maskpass.askpass('Enter Password = ')
+glhost = input('Enter host = ')
+glport = input('Enter port = ')
+
+
 #####################################################################################
 def maskpasswd():
   mpwd = maskpass.askpass('Enter Password = ')
@@ -20,16 +26,11 @@ def maskpasswd():
 #####################################################################################
 def createdb():
 
-    uname = input('Enter Username = ')
-    conpasswd = input('Enter Password (paste masked) = ')
-    conhost = input('Enter Host = ')
-    conport = input('Enter connection port = ')
-
     conn = psycopg2.connect(database='postgres', 
-                            user=uname, 
-                            password=conpasswd, 
-                            host=conhost, 
-                            port= conport)
+                            user=gluserer, 
+                            password=glpasswd, 
+                            host=glhost, 
+                            port= glport)
     try:
       print('Connected to DB...')
       conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
@@ -89,12 +90,13 @@ def createdb():
 
 #####################################################################################
 def loaddata():
-    uname = input('Enter Username = ')
-    conpasswd = input('Enter Password (paste masked) = ')
-    conhost = input('Enter Host = ')
-    conport = input('Enter connection port = ')
+    #uname = input('Enter Username = ')
+    #conpasswd = input('Enter Password (paste masked) = ')
+    #conhost = input('Enter Host = ')
+    #conport = input('Enter connection port = ')
+    
     conn = psycopg2.connect(
-    database="aa_sample_db", user=uname, password=conpasswd, host=conhost, port= conport
+    database="aa_sample_db", user=gluserer, password=glpasswd, host=glhost, port=glport
     )
     conn.autocommit = True
 
