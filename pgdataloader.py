@@ -1,4 +1,5 @@
 import random
+import os
 import psycopg2
 from faker import Faker
 import base64
@@ -11,6 +12,9 @@ gluserer = input('Enter Username = ')
 glpasswd = maskpass.askpass('Enter Password = ')
 glhost = input('Enter host = ')
 glport = input('Enter port = ')
+
+def cls():
+    os.system('cls' if os.name=='nt' else 'clear')
 
 
 #####################################################################################
@@ -25,7 +29,7 @@ def maskpasswd():
 # input("Press Enter to complete...")
 #####################################################################################
 def createdb():
-
+    cls()
     conn = psycopg2.connect(database='postgres', 
                             user=gluserer, 
                             password=glpasswd, 
@@ -40,10 +44,10 @@ def createdb():
       conn.close() 
       print('Creating Schema... ')
       conn = psycopg2.connect(database="aa_sample_db", 
-                              user=uname, 
-                              password=conpasswd, 
-                              host=conhost, 
-                              port= conport)
+                              user=gluserer, 
+                              password=glpasswd, 
+                              host=glhost, 
+                              port=glport)
 
       conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
       cursor = conn.cursor()
@@ -54,10 +58,10 @@ def createdb():
       conn.close() 
 
       conn = psycopg2.connect(database="aa_sample_db", 
-                            user=uname, 
-                            password=conpasswd, 
-                            host=conhost, 
-                            port= conport)
+                            user=gluserer, 
+                            password=glpasswd, 
+                            host=glhost, 
+                            port=glport)
       print('Creating Tables...')
       conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
       cursor = conn.cursor()
@@ -94,7 +98,7 @@ def loaddata():
     #conpasswd = input('Enter Password (paste masked) = ')
     #conhost = input('Enter Host = ')
     #conport = input('Enter connection port = ')
-    
+    cls()
     conn = psycopg2.connect(
     database="aa_sample_db", user=gluserer, password=glpasswd, host=glhost, port=glport
     )
@@ -131,21 +135,19 @@ def loaddata():
 #####################################################################################
 def trashdb():
     
-    uname = input('Enter Username = ')
-    conpasswd = input('Enter Password (paste masked) = ')
-    conhost = input('Enter Host = ')
-    conport = input('Enter connection port = ')
-    conn = psycopg2.connect(database="postgres", 
-                            user=uname, 
-                            password=conpasswd, 
-                            host=conhost, 
-                            port= conport)
+  glpasswdconf = maskpass.askpass("Re-Enter {gluserer} Password =" )
+  
+  conn = psycopg2.connect(database="postgres", 
+                          user=gluserer, 
+                          password=glpasswdconf, 
+                          host=glhost, 
+                          port= glport)
 
-    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-    cursor = conn.cursor()
-    cursor.execute(sql.SQL("DROP DATABASE aa_sample_db WITH (FORCE);"))
-    conn.commit()
-    conn.close() 
+  conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+  cursor = conn.cursor()
+  cursor.execute(sql.SQL("DROP DATABASE aa_sample_db WITH (FORCE);"))
+  conn.commit()
+  conn.close() 
 
 #####################################################################################
 ans=True
