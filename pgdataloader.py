@@ -25,7 +25,7 @@ def maskpasswd():
     print('passwords match')
     print(base64.b64encode(mpwd.encode("utf-8")))
   else:
-    print (f'No Match.')
+    print ('No Match.')
 # input("Press Enter to complete...")
 #####################################################################################
 def createdb():
@@ -150,6 +150,7 @@ def trashdb():
     cursor.execute(sql.SQL("DROP DATABASE aa_sample_db WITH (FORCE);"))
     conn.commit()
     conn.close()
+    print('SampleDB Successfully dropped.')
   else: 
   #except:
     print('Wrong password, database not dropped')
