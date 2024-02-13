@@ -95,45 +95,47 @@ def createdb():
 #####################################################################################
 def loaddata():
     cls()
-    conn = psycopg2.connect(
-    database="aa_sample_db", user=gluserer, password=glpasswd, host=glhost, port=glport
-    )
-    conn.autocommit = True
+    try:
+      conn = psycopg2.connect(
+      database="aa_sample_db", user=gluserer, password=glpasswd, host=glhost, port=glport
+      )
+      conn.autocommit = True
 
-    recs = input('Records to import = ')
-    conrecs = int(recs)
+      recs = input('Records to import = ')
+      conrecs = int(recs)
 
-    #Creating a cursor object using the cursor() method
-    cursor = conn.cursor()
-    for x in range(conrecs):
-        orderdate = (fake.date_time_between_dates(datetime_start='-5y'),)
-        fakeuid = (fake.uuid4())
-        userid = (fake.domain_word())
-        fakefname = (fake.first_name())
-        fakelname = (fake.last_name())
-        email = (fake.free_email())
-        state = (fake.state())
-        ordernum = (fake.sbn9())
-        fakeitem = (fake.word(ext_word_list=['Polo Shirt','Travel Mug', 'Umbrella', 'Sunglasses']))
-        orderqty = (random.randint(1, 10))
-        fakecolor = (fake.safe_color_name())
-        fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
+      #Creating a cursor object using the cursor() method
+      cursor = conn.cursor()
+      for x in range(conrecs):
+          orderdate = (fake.date_time_between_dates(datetime_start='-5y'),)
+          fakeuid = (fake.uuid4())
+          userid = (fake.domain_word())
+          fakefname = (fake.first_name())
+          fakelname = (fake.last_name())
+          email = (fake.free_email())
+          state = (fake.state())
+          ordernum = (fake.sbn9())
+          fakeitem = (fake.word(ext_word_list=['Polo Shirt','Travel Mug', 'Umbrella', 'Sunglasses']))
+          orderqty = (random.randint(1, 10))
+          fakecolor = (fake.safe_color_name())
+          fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
 
-        cursor.execute('''INSERT INTO sales.reporting(orderdate,orderid,userid,customerfname,customerlname,customeremail,customerstate, orditem, orderqty,ordercolor,ordersize,ordernumber)\
-                    VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''',\
-                    (orderdate,fakeuid,userid,fakefname,fakelname,email,state,fakeitem,orderqty,fakecolor,fakesize,ordernum))
+          cursor.execute('''INSERT INTO sales.reporting(orderdate,orderid,userid,customerfname,customerlname,customeremail,customerstate, orditem, orderqty,ordercolor,ordersize,ordernumber)\
+                      VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''',\
+                      (orderdate,fakeuid,userid,fakefname,fakelname,email,state,fakeitem,orderqty,fakecolor,fakesize,ordernum))
 
-    conn.commit()
-    conn.close()   
+      conn.commit()
+      conn.close()   
 
-    print (f"************** {conrecs} Records Inserted **************")
-
+      print (f"***** {conrecs} Records Inserted ****")
+    except:
+       print('Error - Check DB exists')
 #####################################################################################
 def trashdb():
   cls() 
 
   print('Delete sample database? ')
-  glpasswdconf = maskpass.askpass(f"Re-Enter {gluserer} password to confirm = ".format)
+  glpasswdconf = maskpass.askpass(f"Re-Enter {gluserer} password to confirm = ")
   if glpasswdconf == glpasswd:
     print('passwords match')
   #try:
