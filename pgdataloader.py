@@ -94,10 +94,6 @@ def createdb():
 
 #####################################################################################
 def loaddata():
-    #uname = input('Enter Username = ')
-    #conpasswd = input('Enter Password (paste masked) = ')
-    #conhost = input('Enter Host = ')
-    #conport = input('Enter connection port = ')
     cls()
     conn = psycopg2.connect(
     database="aa_sample_db", user=gluserer, password=glpasswd, host=glhost, port=glport
@@ -134,20 +130,27 @@ def loaddata():
 
 #####################################################################################
 def trashdb():
-    
-  glpasswdconf = maskpass.askpass("Re-Enter {gluserer} Password =" )
-  
-  conn = psycopg2.connect(database="postgres", 
-                          user=gluserer, 
-                          password=glpasswdconf, 
-                          host=glhost, 
-                          port= glport)
+  cls() 
 
-  conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-  cursor = conn.cursor()
-  cursor.execute(sql.SQL("DROP DATABASE aa_sample_db WITH (FORCE);"))
-  conn.commit()
-  conn.close() 
+  print('Delete sample database? ')
+  glpasswdconf = maskpass.askpass(f"Re-Enter {gluserer} password to confirm = ".format)
+  if glpasswdconf == glpasswd:
+    print('passwords match')
+  #try:
+    conn = psycopg2.connect(database="postgres", 
+                            user=gluserer, 
+                            password=glpasswdconf, 
+                            host=glhost, 
+                            port= glport)
+
+    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    cursor = conn.cursor()
+    cursor.execute(sql.SQL("DROP DATABASE aa_sample_db WITH (FORCE);"))
+    conn.commit()
+    conn.close()
+  else: 
+  #except:
+    print('Wrong password, database not dropped')
 
 #####################################################################################
 ans=True

@@ -5,4 +5,7 @@
 Requirements:
 
 - Postgres and admin access to it
-- Python / faker (pip install faker)
+- Python / faker 
+- pip install faker
+- pip install psycopg2
+- pip install maskpass
