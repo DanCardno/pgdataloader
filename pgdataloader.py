@@ -20,16 +20,16 @@ def maskpasswd():
 #####################################################################################
 def createdb():
 
-    #uname = input('Enter Username = ')
-    #conpasswd = input('Enter Password (paste masked) = ')
-    #conhost = input('Enter Host = ')
-    #conport = input('Enter connection port = ')
+    uname = input('Enter Username = ')
+    conpasswd = input('Enter Password (paste masked) = ')
+    conhost = input('Enter Host = ')
+    conport = input('Enter connection port = ')
 
-    conn = psycopg2.connect(database="postgres", 
-                            user='postgres', 
-                            password='YW1va2FjaGk=', 
-                            host='10.0.0.129', 
-                            port= '5432')
+    conn = psycopg2.connect(database='postgres', 
+                            user=uname, 
+                            password=conpasswd, 
+                            host=conhost, 
+                            port= conport)
 
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cursor = conn.cursor()
@@ -38,10 +38,10 @@ def createdb():
     conn.close() 
 
     conn = psycopg2.connect(database="aa_sample_db", 
-                            user='postgres', 
-                            password='YW1va2FjaGk=', 
-                            host='10.0.0.129', 
-                            port= '5432')
+                            user=uname, 
+                            password=conpasswd, 
+                            host=conhost, 
+                            port= conport)
 
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cursor = conn.cursor()
@@ -52,10 +52,10 @@ def createdb():
     conn.close() 
 
     conn = psycopg2.connect(database="aa_sample_db", 
-                            user='postgres', 
-                            password='YW1va2FjaGk=', 
-                            host='10.0.0.129', 
-                            port= '5432')
+                            user=uname, 
+                            password=conpasswd, 
+                            host=conhost, 
+                            port= conport)
 
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cursor = conn.cursor()
@@ -82,8 +82,12 @@ def createdb():
 
 #####################################################################################
 def loaddata():
+    uname = input('Enter Username = ')
+    conpasswd = input('Enter Password (paste masked) = ')
+    conhost = input('Enter Host = ')
+    conport = input('Enter connection port = ')
     conn = psycopg2.connect(
-    database="aa_sample_db", user='postgres', password='YW1va2FjaGk=', host='10.0.0.129', port= '5432'
+    database="aa_sample_db", user=uname, password=conpasswd, host=conhost, port= conport
     )
     conn.autocommit = True
 
@@ -117,11 +121,16 @@ def loaddata():
 
 #####################################################################################
 def trashdb():
+    
+    uname = input('Enter Username = ')
+    conpasswd = input('Enter Password (paste masked) = ')
+    conhost = input('Enter Host = ')
+    conport = input('Enter connection port = ')
     conn = psycopg2.connect(database="postgres", 
-                            user='postgres', 
-                            password='YW1va2FjaGk=', 
-                            host='10.0.0.129', 
-                            port= '5432')
+                            user=uname, 
+                            password=conpasswd, 
+                            host=conhost, 
+                            port= conport)
 
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cursor = conn.cursor()
