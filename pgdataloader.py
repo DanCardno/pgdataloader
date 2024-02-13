@@ -30,54 +30,61 @@ def createdb():
                             password=conpasswd, 
                             host=conhost, 
                             port= conport)
+    try:
+      print('Connected to DB...')
+      conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+      cursor = conn.cursor()
+      cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier('aa_sample_db')))
+      conn.commit()
+      conn.close() 
+      print('Creating Schema... ')
+      conn = psycopg2.connect(database="aa_sample_db", 
+                              user=uname, 
+                              password=conpasswd, 
+                              host=conhost, 
+                              port= conport)
 
-    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-    cursor = conn.cursor()
-    cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier('aa_sample_db')))
-    conn.commit()
-    conn.close() 
+      conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+      cursor = conn.cursor()
+      cursor.execute(
+          """ CREATE SCHEMA IF NOT EXISTS sales AUTHORIZATION postgres;
+          """ )
+      conn.commit()
+      conn.close() 
 
-    conn = psycopg2.connect(database="aa_sample_db", 
+      conn = psycopg2.connect(database="aa_sample_db", 
                             user=uname, 
                             password=conpasswd, 
                             host=conhost, 
                             port= conport)
+      print('Creating Tables...')
+      conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+      cursor = conn.cursor()
+      cursor.execute(
+          """ CREATE TABLE IF NOT EXISTS sales.reporting (orderid uuid NOT NULL,
+          userid character varying(30) COLLATE pg_catalog."default",
+          customerfname character varying(30) COLLATE pg_catalog."default",
+          customerlname character varying(30) COLLATE pg_catalog."default",
+          customeremail character varying(50) COLLATE pg_catalog."default",
+          customerstate character varying(30) COLLATE pg_catalog."default",
+          orditem character varying(30) COLLATE pg_catalog."default",
+          orderqty numeric(5,0),
+          ordercolor character varying(15) COLLATE pg_catalog."default",
+          ordersize character varying(10) COLLATE pg_catalog."default",
+          ordernumber character varying(20) COLLATE pg_catalog."default",
+          orderdate timestamp without time zone,
+          CONSTRAINT reporting_pkey PRIMARY KEY (orderid)
+          )
+          TABLESPACE pg_default;
+          """ )
+      conn.commit()
+      conn.close() 
+    except:
+      print('*** DB Creation Error ***')
+      print('*** Check credentials / database already exists ***')
+      print('*** Try using Trash database option... ***')
 
-    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-    cursor = conn.cursor()
-    cursor.execute(
-        """ CREATE SCHEMA IF NOT EXISTS sales AUTHORIZATION postgres;
-        """ )
-    conn.commit()
-    conn.close() 
-
-    conn = psycopg2.connect(database="aa_sample_db", 
-                            user=uname, 
-                            password=conpasswd, 
-                            host=conhost, 
-                            port= conport)
-
-    conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-    cursor = conn.cursor()
-    cursor.execute(
-        """ CREATE TABLE IF NOT EXISTS sales.reporting (orderid uuid NOT NULL,
-        userid character varying(30) COLLATE pg_catalog."default",
-        customerfname character varying(30) COLLATE pg_catalog."default",
-        customerlname character varying(30) COLLATE pg_catalog."default",
-        customeremail character varying(50) COLLATE pg_catalog."default",
-        customerstate character varying(30) COLLATE pg_catalog."default",
-        orditem character varying(30) COLLATE pg_catalog."default",
-        orderqty numeric(5,0),
-        ordercolor character varying(15) COLLATE pg_catalog."default",
-        ordersize character varying(10) COLLATE pg_catalog."default",
-        ordernumber character varying(20) COLLATE pg_catalog."default",
-        orderdate timestamp without time zone,
-        CONSTRAINT reporting_pkey PRIMARY KEY (orderid)
-        )
-        TABLESPACE pg_default;
-        """ )
-    conn.commit()
-    conn.close() 
+  
  #   input("Press Enter to complete...")
 
 #####################################################################################
