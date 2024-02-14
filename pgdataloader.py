@@ -115,7 +115,7 @@ def loaddata():
           email = (fake.free_email())
           state = (fake.state())
           ordernum = (fake.sbn9())
-          fakeitem = (fake.word(ext_word_list=['Polo Shirt','Travel Mug', 'Umbrella', 'Sunglasses']))
+          fakeitem = (fake.word(ext_word_list=['Polo Shirt','Travel Mug', 'Umbrella', 'Sunglasses', 'Water Bottle','Socks']))
           orderqty = (random.randint(1, 10))
           fakecolor = (fake.safe_color_name())
           fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
