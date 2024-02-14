@@ -127,15 +127,15 @@ def loaddata():
       conn.commit()
       conn.close()   
 
-      print (f"***** {conrecs} Records Inserted ****")
+      print (f"* {conrecs} Records Inserted *")
     except:
        print('Error - Check DB exists')
 #####################################################################################
 def trashdb():
   cls() 
 
-  print('Delete sample database? ')
-  glpasswdconf = maskpass.askpass(f"Re-Enter {gluserer} password to confirm = ")
+  print("Enter password below if you're super cereal about dropping the DB")
+  glpasswdconf = maskpass.askpass(f"Re-Enter {gluserer} password  = ")
   if glpasswdconf == glpasswd:
     print('passwords match')
   #try:
