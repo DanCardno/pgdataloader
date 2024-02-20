@@ -77,6 +77,7 @@ def createdb():
           ordercolor character varying(15) COLLATE pg_catalog."default",
           ordersize character varying(10) COLLATE pg_catalog."default",
           ordernumber character varying(20) COLLATE pg_catalog."default",
+          unitcost money,
           orderdate timestamp without time zone,
           CONSTRAINT reporting_pkey PRIMARY KEY (orderid)
           )
@@ -119,10 +120,10 @@ def loaddata():
           orderqty = (random.randint(1, 10))
           fakecolor = (fake.safe_color_name())
           fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
-
-          cursor.execute('''INSERT INTO sales.reporting(orderdate,orderid,userid,customerfname,customerlname,customeremail,customerstate, orditem, orderqty,ordercolor,ordersize,ordernumber)\
-                      VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''',\
-                      (orderdate,fakeuid,userid,fakefname,fakelname,email,state,fakeitem,orderqty,fakecolor,fakesize,ordernum))
+          fakeunitcost = (fake.random_int(min=10, max=20))
+          cursor.execute('''INSERT INTO sales.reporting(orderdate,orderid,userid,customerfname,customerlname,customeremail,customerstate, orditem, orderqty,ordercolor,ordersize,ordernumber,unitcost)\
+                      VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''',\
+                      (orderdate,fakeuid,userid,fakefname,fakelname,email,state,fakeitem,orderqty,fakecolor,fakesize,ordernum,fakeunitcost))
 
       conn.commit()
       conn.close()   
