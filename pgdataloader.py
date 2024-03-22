@@ -1,6 +1,7 @@
 import random
 import os
 import psycopg2
+from psycopg2 import OperationalError
 from faker import Faker
 import base64
 import maskpass
@@ -8,10 +9,15 @@ from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 fake = Faker()
 
-gluserer = input('Enter Username = ')
-glpasswd = maskpass.askpass('Enter Password = ')
-glhost = input('Enter host = ')
-glport = input('Enter port = ')
+#gluserer = input('Enter Username = ')
+#glpasswd = maskpass.askpass('Enter Password = ')
+#glhost = input('Enter host = ')
+#glport = input('Enter port = ')
+
+gluserer = 'postgres'
+glpasswd = 'amokachi'
+glhost = '10.0.0.133'
+glport = '5432'
 
 def cls():
     os.system('cls' if os.name=='nt' else 'clear')
@@ -30,6 +36,8 @@ def maskpasswd():
 #####################################################################################
 def createdb():
     cls()
+    newdbname = input('What do you want to call it?: ')
+    print (newdbname)
     conn = psycopg2.connect(database='postgres', 
                             user=gluserer, 
                             password=glpasswd, 
@@ -39,11 +47,11 @@ def createdb():
       print('Connected to DB...')
       conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
       cursor = conn.cursor()
-      cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier('aa_sample_db')))
+      cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(newdbname)))
       conn.commit()
       conn.close() 
       print('Creating Schema... ')
-      conn = psycopg2.connect(database="aa_sample_db", 
+      conn = psycopg2.connect(database=newdbname, 
                               user=gluserer, 
                               password=glpasswd, 
                               host=glhost, 
@@ -51,13 +59,11 @@ def createdb():
 
       conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
       cursor = conn.cursor()
-      cursor.execute(
-          """ CREATE SCHEMA IF NOT EXISTS sales AUTHORIZATION postgres;
-          """ )
+      cursor.execute(f"CREATE SCHEMA {newdbname}")
       conn.commit()
       conn.close() 
 
-      conn = psycopg2.connect(database="aa_sample_db", 
+      conn = psycopg2.connect(database=newdbname, 
                             user=gluserer, 
                             password=glpasswd, 
                             host=glhost, 
@@ -65,24 +71,28 @@ def createdb():
       print('Creating Tables...')
       conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
       cursor = conn.cursor()
-      cursor.execute(
-          """ CREATE TABLE IF NOT EXISTS sales.reporting (orderid uuid NOT NULL,
-          userid character varying(30) COLLATE pg_catalog."default",
-          customerfname character varying(30) COLLATE pg_catalog."default",
-          customerlname character varying(30) COLLATE pg_catalog."default",
-          customeremail character varying(50) COLLATE pg_catalog."default",
-          customerstate character varying(30) COLLATE pg_catalog."default",
-          orditem character varying(30) COLLATE pg_catalog."default",
-          orderqty numeric(5,0),
-          ordercolor character varying(15) COLLATE pg_catalog."default",
-          ordersize character varying(10) COLLATE pg_catalog."default",
-          ordernumber character varying(20) COLLATE pg_catalog."default",
-          unitcost money,
-          orderdate timestamp without time zone,
-          CONSTRAINT reporting_pkey PRIMARY KEY (orderid)
-          )
-          TABLESPACE pg_default;
-          """ )
+      create_table_query = f""" 
+          CREATE TABLE {newdbname}.reporting (
+            orderid uuid NOT NULL,
+            userid character varying(30) COLLATE pg_catalog."default",
+            customerfname character varying(30) COLLATE pg_catalog."default",
+            customerlname character varying(30) COLLATE pg_catalog."default",
+            customeremail character varying(50) COLLATE pg_catalog."default",
+            customerstate character varying(30) COLLATE pg_catalog."default",
+            orditem character varying(30) COLLATE pg_catalog."default",
+            orderqty numeric(5,0),
+            ordercolor character varying(15) COLLATE pg_catalog."default",
+            ordersize character varying(10) COLLATE pg_catalog."default",
+            ordernumber character varying(20) COLLATE pg_catalog."default",
+            unitcost money,
+            orderdate timestamp without time zone,
+            duration numeric(5,0),
+            agentname character varying(30),
+            contacttype character varying(20) COLLATE pg_catalog."default",
+            CONSTRAINT reporting_pkey PRIMARY KEY (orderid)
+        )
+        """
+      cursor.execute(create_table_query)
       conn.commit()
       conn.close() 
     except:
@@ -96,9 +106,10 @@ def createdb():
 #####################################################################################
 def loaddata():
     cls()
+    dbforloading = input('Which db: ')
     try:
       conn = psycopg2.connect(
-      database="aa_sample_db", user=gluserer, password=glpasswd, host=glhost, port=glport
+      database=dbforloading, user=gluserer, password=glpasswd, host=glhost, port=glport
       )
       conn.autocommit = True
 
@@ -108,7 +119,7 @@ def loaddata():
       #Creating a cursor object using the cursor() method
       cursor = conn.cursor()
       for x in range(conrecs):
-          orderdate = (fake.date_time_between_dates(datetime_start='-5y'),)
+          orderdate = (fake.date_time_between_dates(datetime_start='-1y'),)
           fakeuid = (fake.uuid4())
           userid = (fake.domain_word())
           fakefname = (fake.first_name())
@@ -121,20 +132,22 @@ def loaddata():
           fakecolor = (fake.safe_color_name())
           fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
           fakeunitcost = (fake.random_int(min=10, max=20))
-          cursor.execute('''INSERT INTO sales.reporting(orderdate,orderid,userid,customerfname,customerlname,customeremail,customerstate, orditem, orderqty,ordercolor,ordersize,ordernumber,unitcost)\
-                      VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)''',\
-                      (orderdate,fakeuid,userid,fakefname,fakelname,email,state,fakeitem,orderqty,fakecolor,fakesize,ordernum,fakeunitcost))
-
+          fakeagentname = (fake.word(ext_word_list=['Alice','Boban', 'Charlie', 'Dieter', 'Ernst','Floella','Gregorio', 'Flavia']))
+          fakecontacttype = (fake.word(ext_word_list=[ 'Call - Inbound', 'Call - Outbound', 'E-Mail', 'KB Article', 'Webchat']))
+          fakeduration = (random.randint(60, 3000))
+          loaderscript = f"INSERT INTO {dbforloading}.reporting (orderdate,orderid,userid,customerfname,customerlname,customeremail,customerstate, orditem, orderqty,ordercolor,ordersize,ordernumber,unitcost,agentname,contacttype,duration)\
+                      VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+          cursor.execute(loaderscript,(orderdate,fakeuid,userid,fakefname,fakelname,email,state,fakeitem,orderqty,fakecolor,fakesize,ordernum,fakeunitcost,fakeagentname,fakecontacttype,fakeduration))
       conn.commit()
       conn.close()   
 
       print (f"* {conrecs} Records Inserted *")
-    except:
-       print('Error - Check DB exists')
+    except OperationalError as e:
+        print(f"Error inserting records: {e}")
 #####################################################################################
 def trashdb():
   cls() 
-
+  dropdb = input('Which DB do you want to drop? : ')
   print("Enter password below if you're super cereal about dropping the DB")
   glpasswdconf = maskpass.askpass(f"Re-Enter {gluserer} password  = ")
   if glpasswdconf == glpasswd:
@@ -148,7 +161,7 @@ def trashdb():
 
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cursor = conn.cursor()
-    cursor.execute(sql.SQL("DROP DATABASE aa_sample_db WITH (FORCE);"))
+    cursor.execute(f"DROP DATABASE IF EXISTS {dropdb} WITH (FORCE)")    
     conn.commit()
     conn.close()
     print('SampleDB Successfully dropped.')
