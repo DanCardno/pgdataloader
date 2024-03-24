@@ -147,7 +147,6 @@ def loaddata():
           cursor.execute(loaderscript,(orderdate,fakeuid,userid,fakefname,fakelname,email,state,fakeitem,orderqty,fakecolor,fakesize,ordernum,fakeunitcost,fakeagentname,fakecontacttype,fakeduration,fakelatitude,fakelongitude))
       conn.commit()
       conn.close()   
-
       print (f"* {conrecs} Records Inserted *")
     except OperationalError as e:
         print(f"Error inserting records: {e}")
