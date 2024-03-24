@@ -7,5 +7,5 @@ Requirements:
 - Postgres and admin access to it
 
 - sudo apt-get install libpq-dev
-- pip instsall -r requirements.txt
+- pip install -r requirements.txt
 
