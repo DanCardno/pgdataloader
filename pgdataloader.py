@@ -14,13 +14,11 @@ glpasswd = maskpass.askpass('Enter Password = ')
 glhost = (input('Enter host = ') or "10.0.0.133")
 glport = (input('Enter port (default 5432) = ') or "5432")
 gldbname = "(No DB Loaded)"
-#gluserer = 'postgres'
-#glhost = '10.0.0.133'
-#glport = '5432'
+
+#####################################################################################
 
 def cls():
     os.system('cls' if os.name=='nt' else 'clear')
-
 
 #####################################################################################
 def maskpasswd():
@@ -139,7 +137,7 @@ def loaddata():
           fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
           fakeunitcost = (fake.random_int(min=10, max=20))
           fakeagentname = (fake.word(ext_word_list=['Alice','Boban', 'Charlie', 'Dieter', 'Ernst','Floella','Gregorio', 'Flavia']))
-          fakecontacttype = (fake.word(ext_word_list=[ 'Call - Inbound', 'Call - Outbound', 'E-Mail', 'KB Article', 'Webchat']))
+          fakecontacttype = (fake.word(ext_word_list=[ 'Call - Inbound', 'Call - Outbound', 'E-Mail', 'KB Article', 'Webchat', 'Virtual Session','Administration']))
           fakeduration = (random.randint(60, 3000))
           fakelatitude = (fake.latitude())
           fakelongitude = (fake.longitude())
