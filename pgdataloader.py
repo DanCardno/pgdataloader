@@ -9,14 +9,14 @@ from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 fake = Faker()
 
-#gluserer = input('Enter Username = ')
+gluserer = (input('Enter Username (default postgres) = ') or "postgres")
 glpasswd = maskpass.askpass('Enter Password = ')
-#glhost = input('Enter host = ')
-#glport = input('Enter port = ')
-
-gluserer = 'postgres'
-glhost = '10.0.0.133'
-glport = '5432'
+glhost = (input('Enter host = ') or "10.0.0.133")
+glport = (input('Enter port (default 5432) = ') or "5432")
+gldbname = "(No DB Loaded)"
+#gluserer = 'postgres'
+#glhost = '10.0.0.133'
+#glport = '5432'
 
 def cls():
     os.system('cls' if os.name=='nt' else 'clear')
@@ -96,6 +96,8 @@ def createdb():
       cursor.execute(create_table_query)
       conn.commit()
       conn.close() 
+      global gldbname
+      gldbname = newdbname
     except:
       print('*** DB Creation Error ***')
       print('*** Check credentials / database already exists ***')
@@ -107,7 +109,8 @@ def createdb():
 #####################################################################################
 def loaddata():
     cls()
-    dbforloading = input('Which db: ')
+    loadeddb = gldbname
+    dbforloading = (input(f'Which DB? Press Enter for {gldbname} : ') or gldbname)
     try:
       conn = psycopg2.connect(
       database=dbforloading, user=gluserer, password=glpasswd, host=glhost, port=glport
