@@ -98,6 +98,8 @@ def createdb():
       conn.close() 
       global gldbname
       gldbname = newdbname
+
+      input("Done, press Enter to continue...")
     except:
       print('*** DB Creation Error ***')
       print('*** Check credentials / database already exists ***')
@@ -148,6 +150,8 @@ def loaddata():
       conn.commit()
       conn.close()   
       print (f"* {conrecs} Records Inserted *")
+
+      input("Press Enter to complete...")
     except OperationalError as e:
         print(f"Error inserting records: {e}")
 #####################################################################################
@@ -176,8 +180,10 @@ def trashdb():
     print('Wrong password, database not dropped')
 
 #####################################################################################
+
 ans=True
 while ans:
+    cls()
     print ("""
     1.Mask a password for connecting
     2.Create sample Database
