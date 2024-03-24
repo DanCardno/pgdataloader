@@ -10,12 +10,11 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 fake = Faker()
 
 #gluserer = input('Enter Username = ')
-#glpasswd = maskpass.askpass('Enter Password = ')
+glpasswd = maskpass.askpass('Enter Password = ')
 #glhost = input('Enter host = ')
 #glport = input('Enter port = ')
 
 gluserer = 'postgres'
-glpasswd = 'amokachi'
 glhost = '10.0.0.133'
 glport = '5432'
 
@@ -89,6 +88,8 @@ def createdb():
             duration numeric(5,0),
             agentname character varying(30),
             contacttype character varying(20) COLLATE pg_catalog."default",
+            latitude DOUBLE PRECISION,
+            longitude DOUBLE PRECISION,
             CONSTRAINT reporting_pkey PRIMARY KEY (orderid)
         )
         """
@@ -135,9 +136,12 @@ def loaddata():
           fakeagentname = (fake.word(ext_word_list=['Alice','Boban', 'Charlie', 'Dieter', 'Ernst','Floella','Gregorio', 'Flavia']))
           fakecontacttype = (fake.word(ext_word_list=[ 'Call - Inbound', 'Call - Outbound', 'E-Mail', 'KB Article', 'Webchat']))
           fakeduration = (random.randint(60, 3000))
-          loaderscript = f"INSERT INTO {dbforloading}.reporting (orderdate,orderid,userid,customerfname,customerlname,customeremail,customerstate, orditem, orderqty,ordercolor,ordersize,ordernumber,unitcost,agentname,contacttype,duration)\
-                      VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-          cursor.execute(loaderscript,(orderdate,fakeuid,userid,fakefname,fakelname,email,state,fakeitem,orderqty,fakecolor,fakesize,ordernum,fakeunitcost,fakeagentname,fakecontacttype,fakeduration))
+          fakelatitude = (fake.latitude())
+          fakelongitude = (fake.longitude())
+
+          loaderscript = f"INSERT INTO {dbforloading}.reporting (orderdate,orderid,userid,customerfname,customerlname,customeremail,customerstate, orditem, orderqty,ordercolor,ordersize,ordernumber,unitcost,agentname,contacttype,duration,latitude,longitude)\
+                      VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+          cursor.execute(loaderscript,(orderdate,fakeuid,userid,fakefname,fakelname,email,state,fakeitem,orderqty,fakecolor,fakesize,ordernum,fakeunitcost,fakeagentname,fakecontacttype,fakeduration,fakelatitude,fakelongitude))
       conn.commit()
       conn.close()   
 
