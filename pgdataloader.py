@@ -123,6 +123,7 @@ def loaddata():
       #Creating a cursor object using the cursor() method
       cursor = conn.cursor()
       for x in range(conrecs):
+          geo=(fake.local_latlng(country_code='US', coords_only=False))
           orderdate = (fake.date_time_between_dates(datetime_start='-1y'),)
           fakeuid = (fake.uuid4())
           userid = (fake.domain_word())
@@ -139,8 +140,8 @@ def loaddata():
           fakeagentname = (fake.word(ext_word_list=['Alice','Boban', 'Charlie', 'Dieter', 'Ernst','Floella','Gregorio', 'Flavia']))
           fakecontacttype = (fake.word(ext_word_list=[ 'Call - Inbound', 'Call - Outbound', 'E-Mail', 'KB Article', 'Webchat', 'Virtual Session','Administration']))
           fakeduration = (random.randint(60, 3000))
-          fakelatitude = (fake.latitude())
-          fakelongitude = (fake.longitude())
+          fakelatitude = (geo[0])
+          fakelongitude = (geo[1])
 
           loaderscript = f"INSERT INTO {dbforloading}.reporting (orderdate,orderid,userid,customerfname,customerlname,customeremail,customerstate, orditem, orderqty,ordercolor,ordersize,ordernumber,unitcost,agentname,contacttype,duration,latitude,longitude)\
                       VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
