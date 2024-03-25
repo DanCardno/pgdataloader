@@ -123,7 +123,7 @@ def loaddata():
       #Creating a cursor object using the cursor() method
       cursor = conn.cursor()
       for x in range(conrecs):
-          geo=(fake.local_latlng(country_code='US', coords_only=False))
+          geo=(fake.local_latlng(country_code='US', coords_only=True))
           orderdate = (fake.date_time_between_dates(datetime_start='-1y'),)
           fakeuid = (fake.uuid4())
           userid = (fake.domain_word())
