@@ -170,8 +170,25 @@ def createdb():
 #####################################################################################
 def loaddata():
     cls()
-    loadeddb = gldbname
-    dbforloading = (input(f'Which DB? Press Enter for {gldbname} : ') or gldbname)
+    cur = conn.cursor()
+    cur.execute("SELECT datname FROM pg_database WHERE datistemplate = false;")
+    rows = cur.fetchall()
+    numbered_databases = {}
+    for i, row in enumerate(rows):
+        numbered_databases[i + 1] = row[0]
+        print(f"{i + 1}. {row[0]}")
+
+    selection = int(input("Select a database by entering its number: "))
+    selected_database = numbered_databases.get(selection)
+
+    if selected_database:
+        print(f"Selected database: {selected_database}")
+        dbforloading = selected_database
+    else:
+        print("Invalid selection")
+    
+    
+    
     try:
       conn = psycopg2.connect(
       database=dbforloading, user=gluserer, password=glpasswd, host=glhost, port=glport
@@ -216,7 +233,31 @@ def loaddata():
 #####################################################################################
 def orderdata():
     cls()
-    dbforloading = (input(f'Which DB? Press Enter for {gldbname} : ') or gldbname)
+    conn = psycopg2.connect(
+      database='postgres', user=gluserer, password=glpasswd, host=glhost, port=glport
+      )
+    conn.autocommit = True
+    
+    cur = conn.cursor()
+    cur.execute("SELECT datname FROM pg_database WHERE datistemplate = false;")
+    rows = cur.fetchall()
+    numbered_databases = {}
+    for i, row in enumerate(rows):
+        numbered_databases[i + 1] = row[0]
+        print(f"{i + 1}. {row[0]}")
+
+    selection = int(input("Select a database by entering its number: "))
+    selected_database = numbered_databases.get(selection)
+
+    if selected_database:
+        cls()
+        print(f"Selected database: {selected_database}")
+        dbforloading = selected_database
+    else:
+        print("Invalid selection")
+        orderdata()
+        
+
     try:
       conn = psycopg2.connect(database=dbforloading, user=gluserer, password=glpasswd, host=glhost, port=glport)
       conn.autocommit = True
@@ -226,7 +267,7 @@ def orderdata():
       cursor = conn.cursor()
       for x in range(conrecs): 
         ordernum = (fake.sbn9())
-        orderdate = (fake.date_time_between_dates(datetime_start='-7d'),)
+        orderdate = (fake.date_time_between_dates(datetime_start='-1y'),)
         fakeitem = (fake.word(ext_word_list=['Polo Shirt','Travel Mug', 'Umbrella', 'Sunglasses', 'Water Bottle','Socks']))
         fakecolor = (fake.safe_color_name())
         fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
