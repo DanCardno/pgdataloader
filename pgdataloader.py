@@ -267,7 +267,7 @@ def orderdata():
       cursor = conn.cursor()
       for x in range(conrecs): 
         ordernum = (fake.sbn9())
-        orderdate = (fake.date_time_between_dates(datetime_start='-1y'),)
+        orderdate = (fake.date_time_between_dates(datetime_start='-2y'),)
         fakeitem = (fake.word(ext_word_list=['Polo Shirt','Travel Mug', 'Umbrella', 'Sunglasses', 'Water Bottle','Socks']))
         fakecolor = (fake.safe_color_name())
         fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
