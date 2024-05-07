@@ -9,11 +9,13 @@ from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 fake = Faker()
 
-gluserer = (input('Enter Username (default postgres) = ') or "postgres")
-glpasswd = maskpass.askpass('Enter Password = ')
-glhost = (input('Enter host = ') or "10.0.0.133")
-glport = (input('Enter port (default 5432) = ') or "5432")
-gldbname = "(No DB Loaded)"
+#gluserer = (input('Enter Username (default postgres) = ') or "postgres")
+#glpasswd = maskpass.askpass('Enter Password = ')
+#glhost = (input('Enter host = ') or "10.0.0.133")
+#glport = (input('Enter port (default 5432) = ') or "5432")
+#gldbname = "(No DB Loaded)"
+
+
 
 #####################################################################################
 
@@ -158,18 +160,52 @@ def createdb():
         conn.commit()
         conn.close() 
         print('Orders Created')
-        input("Done, press Enter to continue...")
     except psycopg2.Error as e:
         print(f"Error creating database: {e}")
 
-        global gldbname
-        gldbname = newdbname
+    ######### CALLS TABLE #########
+    conn = psycopg2.connect(database=newdbname, 
+                                  user=gluserer, 
+                                  password=glpasswd, 
+                                  host=glhost, 
+                                  port=glport)
+    try:
+      print('Creating Calls Table...')
+      conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+      cursor = conn.cursor()
+      create_calls_query = f""" 
+            CREATE TABLE IF NOT EXISTS {newdbname}.calls
+                (
+                    callref uuid,
+                    agent uuid,
+                    customer uuid,
+                    date timestamp without time zone,
+                    reason character varying(30) COLLATE pg_catalog."default",
+                    duration integer,
+                    reasoncode character varying(30) COLLATE pg_catalog."default",
+                    resolved boolean,
+                    answertime integer
+                )
+            """
+      cursor.execute(create_calls_query)
+      conn.commit()
+      conn.close() 
+      print('Calls Created')
+      input("Done, press Enter to continue...")
+    except psycopg2.Error as e:
+      print(f"Error creating database: {e}")
 
-
+      global gldbname
+      gldbname = newdbname
 
 #####################################################################################
 def loaddata():
     cls()
+    conn = psycopg2.connect(
+      database='postgres', user=gluserer, password=glpasswd, host=glhost, port=glport
+      )
+    conn.autocommit = True
+    
     cur = conn.cursor()
     cur.execute("SELECT datname FROM pg_database WHERE datistemplate = false;")
     rows = cur.fetchall()
@@ -186,8 +222,6 @@ def loaddata():
         dbforloading = selected_database
     else:
         print("Invalid selection")
-    
-    
     
     try:
       conn = psycopg2.connect(
@@ -261,7 +295,7 @@ def orderdata():
     try:
       conn = psycopg2.connect(database=dbforloading, user=gluserer, password=glpasswd, host=glhost, port=glport)
       conn.autocommit = True
-      recs = input('Records to import = ')
+      recs = input('Records to add = ')
       conrecs = int(recs)    
     #Creating a cursor object using the cursor() method
       cursor = conn.cursor()
@@ -278,13 +312,55 @@ def orderdata():
         useruuid=cursor.fetchone()[0]
         orderdatascript = f"INSERT INTO {dbforloading}.orders (orderid, customerid, orderdate, orderitem,qty,color,size,unitprice) \
             VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"   
-        cursor.execute(orderdatascript,(ordernum,useruuid,orderdate,fakeitem,orderqty,fakecolor,fakesize,fakeunitcost))
+      conn.commit()
+      conn.close()   
+      print (f"* {conrecs} Records Inserted *")
+#      input("Press Enter to complete...")
+    except OperationalError as e:
+        print(f"Error inserting records: {e}")
+
+
+################# CALL DATA #############################
+
+    try:
+      conn = psycopg2.connect(database=dbforloading, user=gluserer, password=glpasswd, host=glhost, port=glport)
+      conn.autocommit = True
+#      recs = input('Records to import = ')
+      conrecs = int(recs)    
+    #Creating a cursor object using the cursor() method
+      cursor = conn.cursor()
+      for x in range(conrecs): 
+        callref = (fake.uuid4())
+        selectscript = f"""select agent_id from {dbforloading}.agents order by random() limit 1"""
+        cursor.execute(selectscript)
+        callagent=cursor.fetchone()[0]
+        calldate = (fake.date_time_between_dates(datetime_start='-2w'),)
+
+        cusselectscript = f"""select customerid from {dbforloading}.customers order by random() limit 1"""
+        cursor.execute(cusselectscript)
+        callcustomer=cursor.fetchone()[0]
+        th = 80 / 100
+        calldirection = "Inbound" if random.random() < th else "Outbound"
+        callreason = (fake.word(ext_word_list=[ 'Billing Enquiry', 'Complaint', 'Bill Payment', 'Technical Support', 'Other']))
+        callreasoncode = (fake.word(ext_word_list=[ 'Wrapup', 'Documentation', 'Call Wrapup', 'Break', 'Transfer']))
+        callduration = (fake.random_int(min=100, max=2000))
+        callresolved = random.choice([True, False])
+        callanswertime = (fake.random_int(min=10, max=20))
+        orderdatascript = f"INSERT INTO {dbforloading}.calls (callref, agent, customer, date, reason, duration, resolved, answertime, reasoncode,calldirection) \
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"   
+        cursor.execute(orderdatascript,(callref,callagent,callcustomer,calldate,callreason,callduration,callresolved,callanswertime,callreasoncode,calldirection))
       conn.commit()
       conn.close()   
       print (f"* {conrecs} Records Inserted *")
       input("Press Enter to complete...")
     except OperationalError as e:
         print(f"Error inserting records: {e}")
+
+
+
+
+
+
 #####################################################################################
 def trashdb():
   cls() 
@@ -317,9 +393,9 @@ while ans:
     cls()
     print ("""
     1.Mask a password for connecting
-    2.Create sample Database
-    3.Load Agent / Customer data
-    4.Load Order Data
+    2.Create sample database
+    3.Load agent / customer data
+    4.Load order call / data
     5.Trash DB
     6.Exit
     """)
