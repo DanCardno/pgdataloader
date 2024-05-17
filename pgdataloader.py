@@ -33,6 +33,12 @@ def maskpasswd():
     print ('No Match.')
 # input("Press Enter to complete...")
 #####################################################################################
+# DB Creation
+# database
+# - schema
+# - tables
+
+
 def createdb():
     cls()
     newdbname = input('What do you want to call it?: ')
@@ -141,7 +147,7 @@ def createdb():
         create_orders_query = f""" 
             CREATE TABLE IF NOT EXISTS {newdbname}.orders
             (
-                orderid character varying(20) COLLATE pg_catalog."default" NOT NULL,
+                orderid uuid,
                 customerid uuid,
                 orderdate timestamp without time zone,
                 orderitem character varying COLLATE pg_catalog."default",
@@ -184,7 +190,8 @@ def createdb():
                     duration integer,
                     reasoncode character varying(30) COLLATE pg_catalog."default",
                     resolved boolean,
-                    answertime integer
+                    answertime integer,
+                    calldirection character varying(11)
                 )
             """
       cursor.execute(create_calls_query)
@@ -229,12 +236,34 @@ def loaddata():
       )
       conn.autocommit = True
 
-      recs = input('Records to import = ')
-      conrecs = int(recs)
+      #recs = input('Records to import = ')
+      #conrecs = int(recs)
 
       #Creating a cursor object using the cursor() method
       cursor = conn.cursor()
-      for x in range(conrecs):
+      for x in range(20):
+          geo=(fake.local_latlng(country_code='US', coords_only=True))
+          
+          fakeuid = (fake.uuid4())
+          fakefname = (fake.first_name())
+          fakelname = (fake.last_name())
+          email = (fake.free_email())
+          state = (fake.state())
+          fakelatitude = (geo[0])
+          fakelongitude = (geo[1])
+          
+          agentinsertscript  = f"INSERT INTO {dbforloading}.agents (agent_id, afname, alastname, aemail, alocation) VALUES (%s,%s,%s,%s,%s)"
+          cursor.execute(agentinsertscript,(fakeuid,fakefname,fakelname,email,state))
+      conn.commit()
+      conn.close()   
+      print (f"* Agents added *")
+
+      conn = psycopg2.connect(
+      database=dbforloading, user=gluserer, password=glpasswd, host=glhost, port=glport
+      )
+      conn.autocommit = True
+      cursor = conn.cursor()
+      for x in range(500):
           geo=(fake.local_latlng(country_code='US', coords_only=True))
           
           fakeuid = (fake.uuid4())
@@ -243,28 +272,21 @@ def loaddata():
           fakelname = (fake.last_name())
           email = (fake.free_email())
           state = (fake.state())
-#          fakeagentname = (fake.word(ext_word_list=['Alice','Boban', 'Charlie', 'Dieter', 'Ernst','Floella','Gregorio', 'Flavia']))
-#         fakecontacttype = (fake.word(ext_word_list=[ 'Call - Inbound', 'Call - Outbound', 'E-Mail', 'KB Article', 'Webchat', 'Virtual Session','Administration']))
-#          fakeduration = (random.randint(60, 3000))
           fakelatitude = (geo[0])
           fakelongitude = (geo[1])
-          
-          agentinsertscript  = f"INSERT INTO {dbforloading}.agents (agent_id, afname, alastname, aemail, alocation) VALUES (%s,%s,%s,%s,%s)"
           customerinsertscript = f"INSERT INTO {dbforloading}.customers (customerid, cfname, clname, cemail, caddress, cstate,lat,long) \
                                     VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
-         # loaderscript = f"INSERT INTO {dbforloading}.reporting (orderdate,orderid,userid,customerfname,customerlname,customeremail,customerstate, orditem, orderqty,ordercolor,ordersize,ordernumber,unitcost,agentname,contacttype,duration,latitude,longitude)\
-         #             VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-         # cursor.execute(loaderscript,(orderdate,fakeuid,userid,fakefname,fakelname,email,state,fakeitem,orderqty,fakecolor,fakesize,ordernum,fakeunitcost,fakeagentname,fakecontacttype,fakeduration,fakelatitude,fakelongitude))
-          cursor.execute(agentinsertscript,(fakeuid,fakefname,fakelname,email,state))
           cursor.execute(customerinsertscript,(fakeuid,fakefname,fakelname,email,state,state,fakelatitude,fakelongitude))
       conn.commit()
       conn.close()   
-      print (f"* {conrecs} Records Inserted *")
+      print (f"* Customers added *")
 
       input("Press Enter to complete...")
     except OperationalError as e:
         print(f"Error inserting records: {e}")
 #####################################################################################
+
+# Order and calls info
 def orderdata():
     cls()
     conn = psycopg2.connect(
@@ -290,32 +312,31 @@ def orderdata():
     else:
         print("Invalid selection")
         orderdata()
-        
-
     try:
       conn = psycopg2.connect(database=dbforloading, user=gluserer, password=glpasswd, host=glhost, port=glport)
       conn.autocommit = True
       recs = input('Records to add = ')
       conrecs = int(recs)    
-    #Creating a cursor object using the cursor() method
       cursor = conn.cursor()
       for x in range(conrecs): 
-        ordernum = (fake.sbn9())
-        orderdate = (fake.date_time_between_dates(datetime_start='-2y'),)
+        ordernum = (fake.uuid4())
+        orderdate = (fake.date_time_between_dates(datetime_start='-8w'),)
         fakeitem = (fake.word(ext_word_list=['Polo Shirt','Travel Mug', 'Umbrella', 'Sunglasses', 'Water Bottle','Socks']))
         fakecolor = (fake.safe_color_name())
         fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
         fakeunitcost = (fake.random_int(min=10, max=20))
-        selectscript = f"""select customerid from {dbforloading}.customers order by random() limit 1"""
+#### Pull a single customer for the order data ####
+        selcustomer = f"""select customerid from {dbforloading}.customers order by random() limit 1""" 
+        cursor.execute(selcustomer)
+        customerselect=cursor.fetchone()[0]
+###################################################
         orderqty = (random.randint(1, 10))
-        cursor.execute(selectscript)
-        useruuid=cursor.fetchone()[0]
-        orderdatascript = f"INSERT INTO {dbforloading}.orders (orderid, customerid, orderdate, orderitem,qty,color,size,unitprice) \
+        orderdatascript = f"INSERT INTO {dbforloading}.orders (orderid, customerid, orderdate, orderitem, qty, color, unitprice, size) \
             VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"   
+        cursor.execute(orderdatascript,(ordernum,customerselect,orderdate,fakeitem,orderqty,fakecolor,fakeunitcost,fakesize))
       conn.commit()
       conn.close()   
       print (f"* {conrecs} Records Inserted *")
-#      input("Press Enter to complete...")
     except OperationalError as e:
         print(f"Error inserting records: {e}")
 
@@ -334,11 +355,12 @@ def orderdata():
         selectscript = f"""select agent_id from {dbforloading}.agents order by random() limit 1"""
         cursor.execute(selectscript)
         callagent=cursor.fetchone()[0]
-        calldate = (fake.date_time_between_dates(datetime_start='-2w'),)
-
+        calldate = (fake.date_time_between_dates(datetime_start='-8w'),)
+#### Pull a single customer for the call data ####
         cusselectscript = f"""select customerid from {dbforloading}.customers order by random() limit 1"""
         cursor.execute(cusselectscript)
         callcustomer=cursor.fetchone()[0]
+####################################################
         th = 80 / 100
         calldirection = "Inbound" if random.random() < th else "Outbound"
         callreason = (fake.word(ext_word_list=[ 'Billing Enquiry', 'Complaint', 'Bill Payment', 'Technical Support', 'Other']))
@@ -355,11 +377,6 @@ def orderdata():
       input("Press Enter to complete...")
     except OperationalError as e:
         print(f"Error inserting records: {e}")
-
-
-
-
-
 
 #####################################################################################
 def trashdb():
