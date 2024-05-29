@@ -15,7 +15,11 @@ fake = Faker()
 #glport = (input('Enter port (default 5432) = ') or "5432")
 #gldbname = "(No DB Loaded)"
 
-
+gluserer = ('postgres')
+glpasswd = ('amokachi')
+glhost = ('10.0.0.133')
+glport = ('5432')
+gldbname = "(No DB Loaded)"
 
 #####################################################################################
 
@@ -248,7 +252,7 @@ def loaddata():
           fakefname = (fake.first_name())
           fakelname = (fake.last_name())
           email = (fake.free_email())
-          state = (fake.state())
+          state = (fake.word(ext_word_list=[ 'Houston - HQ', 'Denver', 'Cleveland', 'Oakland', 'Nashville']))
           fakelatitude = (geo[0])
           fakelongitude = (geo[1])
           
@@ -320,7 +324,7 @@ def orderdata():
       cursor = conn.cursor()
       for x in range(conrecs): 
         ordernum = (fake.uuid4())
-        orderdate = (fake.date_time_between_dates(datetime_start='-8w'),)
+        orderdate = (fake.date_time_between_dates(datetime_start='-12w'),)
         fakeitem = (fake.word(ext_word_list=['Polo Shirt','Travel Mug', 'Umbrella', 'Sunglasses', 'Water Bottle','Socks']))
         fakecolor = (fake.safe_color_name())
         fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
@@ -364,7 +368,7 @@ def orderdata():
         th = 80 / 100
         calldirection = "Inbound" if random.random() < th else "Outbound"
         callreason = (fake.word(ext_word_list=[ 'Billing Enquiry', 'Complaint', 'Bill Payment', 'Technical Support', 'Other']))
-        callreasoncode = (fake.word(ext_word_list=[ 'Wrapup', 'Documentation', 'Call Wrapup', 'Break', 'Transfer']))
+        callreasoncode = (fake.word(ext_word_list=[ 'Research', 'Documentation', 'Manager Escalation', 'Break', 'Transfer']))
         callduration = (fake.random_int(min=100, max=2000))
         callresolved = random.choice([True, False])
         callanswertime = (fake.random_int(min=10, max=20))
