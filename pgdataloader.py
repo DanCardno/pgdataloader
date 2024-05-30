@@ -159,6 +159,7 @@ def createdb():
                 color character varying(15) COLLATE pg_catalog."default",
                 unitprice numeric(6,0),
                 size character varying(15) COLLATE pg_catalog."default",
+                agent uuid,
                 CONSTRAINT orders_pkey1 PRIMARY KEY (orderid),
                 CONSTRAINT fk_customer_id FOREIGN KEY (customerid)
                     REFERENCES {newdbname}.customers (customerid) MATCH SIMPLE
@@ -334,10 +335,16 @@ def orderdata():
         cursor.execute(selcustomer)
         customerselect=cursor.fetchone()[0]
 ###################################################
+
+#### Pull a single agent for the order data ####
+        saleagent = f"""select agent_id from {dbforloading}.agents order by random() limit 1""" 
+        cursor.execute(saleagent)
+        agentselect=cursor.fetchone()[0]
+###################################################
         orderqty = (random.randint(1, 10))
-        orderdatascript = f"INSERT INTO {dbforloading}.orders (orderid, customerid, orderdate, orderitem, qty, color, unitprice, size) \
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"   
-        cursor.execute(orderdatascript,(ordernum,customerselect,orderdate,fakeitem,orderqty,fakecolor,fakeunitcost,fakesize))
+        orderdatascript = f"INSERT INTO {dbforloading}.orders (orderid, customerid, orderdate, orderitem, qty, color, unitprice, size,agent) \
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"   
+        cursor.execute(orderdatascript,(ordernum,customerselect,orderdate,fakeitem,orderqty,fakecolor,fakeunitcost,fakesize,agentselect))
       conn.commit()
       conn.close()   
       print (f"* {conrecs} Records Inserted *")
@@ -359,7 +366,7 @@ def orderdata():
         selectscript = f"""select agent_id from {dbforloading}.agents order by random() limit 1"""
         cursor.execute(selectscript)
         callagent=cursor.fetchone()[0]
-        calldate = (fake.date_time_between_dates(datetime_start='-8w'),)
+        calldate = (fake.date_time_between_dates(datetime_start='-12w'),)
 #### Pull a single customer for the call data ####
         cusselectscript = f"""select customerid from {dbforloading}.customers order by random() limit 1"""
         cursor.execute(cusselectscript)
