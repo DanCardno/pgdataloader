@@ -17,7 +17,7 @@ fake = Faker()
 
 gluserer = ('postgres')
 glpasswd = ('amokachi')
-glhost = ('10.0.0.133')
+glhost = ('10.0.0.214')
 glport = ('5432')
 gldbname = "(No DB Loaded)"
 
@@ -325,7 +325,7 @@ def orderdata():
       cursor = conn.cursor()
       for x in range(conrecs): 
         ordernum = (fake.uuid4())
-        orderdate = (fake.date_time_between_dates(datetime_start='-12w'),)
+        orderdate = (fake.date_time_between_dates(datetime_start='-4w'),)
         fakeitem = (fake.word(ext_word_list=['Polo Shirt','Travel Mug', 'Umbrella', 'Sunglasses', 'Water Bottle','Socks']))
         fakecolor = (fake.safe_color_name())
         fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
@@ -366,7 +366,7 @@ def orderdata():
         selectscript = f"""select agent_id from {dbforloading}.agents order by random() limit 1"""
         cursor.execute(selectscript)
         callagent=cursor.fetchone()[0]
-        calldate = (fake.date_time_between_dates(datetime_start='-12w'),)
+        calldate = (fake.date_time_between_dates(datetime_start='-4w'),)
 #### Pull a single customer for the call data ####
         cusselectscript = f"""select customerid from {dbforloading}.customers order by random() limit 1"""
         cursor.execute(cusselectscript)
