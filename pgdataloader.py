@@ -16,7 +16,7 @@ fake = Faker()
 #gldbname = "(No DB Loaded)"
 
 gluserer = ('postgres')
-glpasswd = ('amokachi')
+glpasswd = ('YW1va2FjaGk=')
 glhost = ('10.0.0.214')
 glport = ('5432')
 gldbname = "(No DB Loaded)"
@@ -28,14 +28,18 @@ def cls():
 
 #####################################################################################
 def maskpasswd():
+  cls()
   mpwd = maskpass.askpass('Enter Password = ')
   mpwd2 = maskpass.askpass('Re-enter Password = ')
   if mpwd == mpwd2:
-    print('passwords match')
-    print(base64.b64encode(mpwd.encode("utf-8")))
+    print('\npasswords match')
+    encoded_password = base64.b64encode(mpwd.encode("utf-8"))
+    formatted_result = encoded_password.decode("utf-8")
+
+    print(f"\nEncoded password: {formatted_result}")
   else:
     print ('No Match.')
-# input("Press Enter to complete...")
+  input("\nPress Enter to complete...")
 #####################################################################################
 # DB Creation
 # database
