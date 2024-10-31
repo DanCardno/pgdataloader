@@ -158,12 +158,13 @@ def createdb():
                 orderid uuid,
                 customerid uuid,
                 orderdate timestamp without time zone,
-                orderitem character varying COLLATE pg_catalog."default",
+                orderitem character varying(30) COLLATE pg_catalog."default",
                 qty numeric(4,0),
                 color character varying(15) COLLATE pg_catalog."default",
                 unitprice numeric(6,0),
                 size character varying(15) COLLATE pg_catalog."default",
                 agent uuid,
+                orderstage character varying(20) COLLATE pg_catalog."default",
                 CONSTRAINT orders_pkey1 PRIMARY KEY (orderid),
                 CONSTRAINT fk_customer_id FOREIGN KEY (customerid)
                     REFERENCES {newdbname}.customers (customerid) MATCH SIMPLE
@@ -346,9 +347,10 @@ def orderdata():
         agentselect=cursor.fetchone()[0]
 ###################################################
         orderqty = (random.randint(1, 10))
-        orderdatascript = f"INSERT INTO {dbforloading}.orders (orderid, customerid, orderdate, orderitem, qty, color, unitprice, size,agent) \
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"   
-        cursor.execute(orderdatascript,(ordernum,customerselect,orderdate,fakeitem,orderqty,fakecolor,fakeunitcost,fakesize,agentselect))
+        orderstage = (fake.word(ext_word_list=[ 'Picking', 'Awaiting Pickup', 'Quality Check', 'Packing', 'Shipped', 'Delivered', 'Returned' ]))
+        orderdatascript = f"INSERT INTO {dbforloading}.orders (orderid, customerid, orderdate, orderitem, qty, color, unitprice, size,agent, orderstage) \
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"   
+        cursor.execute(orderdatascript,(ordernum,customerselect,orderdate,fakeitem,orderqty,fakecolor,fakeunitcost,fakesize,agentselect,orderstage))
       conn.commit()
       conn.close()   
       print (f"* {conrecs} Records Inserted *")
@@ -415,8 +417,9 @@ def trashdb():
     conn.close()
     print('SampleDB Successfully dropped.')
   else: 
-  #except:
+    #except
     print('Wrong password, database not dropped')
+    input(f"\n{glpasswd}Press Enter to complete...")
 
 #####################################################################################
 
