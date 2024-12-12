@@ -9,17 +9,13 @@ from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 fake = Faker()
 
-#gluserer = (input('Enter Username (default postgres) = ') or "postgres")
-#glpasswd = maskpass.askpass('Enter Password = ')
-#glhost = (input('Enter host = ') or "10.0.0.133")
-#glport = (input('Enter port (default 5432) = ') or "5432")
-#gldbname = "(No DB Loaded)"
-
-gluserer = ('postgres')
-glpasswd = ('YW1va2FjaGk=')
-glhost = ('10.0.0.214')
-glport = ('5432')
+gluserer = (input('Enter Username (default postgres) = ') or "postgres")
+glpasswd = maskpass.askpass('Enter Password = ')
+glhost = (input('Enter host = ') or "10.0.0.133")
+glport = (input('Enter port (default 5432) = ') or "5432")
 gldbname = "(No DB Loaded)"
+
+
 
 #####################################################################################
 
@@ -330,7 +326,7 @@ def orderdata():
       cursor = conn.cursor()
       for x in range(conrecs): 
         ordernum = (fake.uuid4())
-        orderdate = (fake.date_time_between_dates(datetime_start='-4w'),)
+        orderdate = (fake.date_time_between_dates(datetime_start='-12w'),)
         fakeitem = (fake.word(ext_word_list=['Polo Shirt','Travel Mug', 'Umbrella', 'Sunglasses', 'Water Bottle','Socks']))
         fakecolor = (fake.safe_color_name())
         fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
@@ -372,7 +368,7 @@ def orderdata():
         selectscript = f"""select agent_id from {dbforloading}.agents order by random() limit 1"""
         cursor.execute(selectscript)
         callagent=cursor.fetchone()[0]
-        calldate = (fake.date_time_between_dates(datetime_start='-4w'),)
+        calldate = (fake.date_time_between_dates(datetime_start='-12w'),)
 #### Pull a single customer for the call data ####
         cusselectscript = f"""select customerid from {dbforloading}.customers order by random() limit 1"""
         cursor.execute(cusselectscript)
