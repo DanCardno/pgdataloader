@@ -154,10 +154,8 @@ def createdb():
                 orderid uuid,
                 customerid uuid,
                 orderdate timestamp without time zone,
-                orderitem character varying(30) COLLATE pg_catalog."default",
+                orderitem uuid,
                 qty numeric(4,0),
-                color character varying(15) COLLATE pg_catalog."default",
-                unitprice numeric(6,0),
                 size character varying(15) COLLATE pg_catalog."default",
                 agent uuid,
                 orderstage character varying(20) COLLATE pg_catalog."default",
@@ -204,6 +202,39 @@ def createdb():
       conn.commit()
       conn.close() 
       print('Calls Created')
+
+    except psycopg2.Error as e:
+      print(f"Error creating database: {e}")
+
+    ######### ITEM TABLE #########
+    conn = psycopg2.connect(database=newdbname, 
+                                  user=gluserer, 
+                                  password=glpasswd, 
+                                  host=glhost, 
+                                  port=glport)
+    try:
+      print('Creating Stock Item Table...')
+      conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+      cursor = conn.cursor()
+      create_item_query = f""" 
+            CREATE TABLE IF NOT EXISTS {newdbname}.items
+              (
+                  item_id SERIAL PRIMARY KEY,             -- Unique identifier for the item
+                  unique_id UUID DEFAULT gen_random_uuid(), -- Universally unique identifier
+                  name VARCHAR(100) NOT NULL,            -- Item name
+                  color VARCHAR(50),                     -- Color of the item
+                  price NUMERIC(10, 2) NOT NULL,         -- Price of the item
+                  description TEXT,                      -- Description of the item
+                  category VARCHAR(50),                  -- Category to which the item belongs
+                  stock_quantity INT DEFAULT 0,          -- Quantity in stock
+                  created_at TIMESTAMP DEFAULT NOW(),    -- Timestamp when the item was created
+                  updated_at TIMESTAMP DEFAULT NOW()     -- Timestamp when the item was last updated
+              )
+            """
+      cursor.execute(create_item_query)
+      conn.commit()
+      conn.close() 
+      print('Stock Items Created')
       input("Done, press Enter to continue...")
     except psycopg2.Error as e:
       print(f"Error creating database: {e}")
@@ -287,6 +318,32 @@ def loaddata():
       conn.close()   
       print (f"* Customers added *")
 
+      conn = psycopg2.connect(
+      database=dbforloading, user=gluserer, password=glpasswd, host=glhost, port=glport
+      )
+      print('Creating Stock Items...')
+      conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+      cursor = conn.cursor()
+      create_item_query = f"""             
+            INSERT INTO  {dbforloading}.items (name, color, price, description, category, stock_quantity) VALUES
+            ('Red Chair', 'Red', 49.99, 'A comfortable red chair', 'Furniture', 10),
+            ('Blue Desk', 'Blue', 89.99, 'A sturdy blue desk', 'Furniture', 5),
+            ('Green Lamp', 'Green', 19.99, 'A stylish green lamp', 'Lighting', 20),
+            ('Yellow Pillow', 'Yellow', 9.99, 'A soft yellow pillow', 'Bedding', 50),
+            ('Black Sofa', 'Black', 299.99, 'A modern black sofa', 'Furniture', 2),
+            ('White Table', 'White', 159.99, 'A sleek white table', 'Furniture', 8),
+            ('Pink Mug', 'Pink', 5.99, 'A cute pink mug', 'Kitchenware', 100),
+            ('Orange Blanket', 'Orange', 24.99, 'A warm orange blanket', 'Bedding', 25),
+            ('Gray Shelf', 'Gray', 69.99, 'A durable gray shelf', 'Storage', 15),
+            ('Purple Rug', 'Purple', 39.99, 'A soft purple rug', 'Decor', 12);
+            """
+      cursor.execute(create_item_query)
+      conn.commit()
+      conn.close() 
+      print('Stock Items Added')
+
+
+
       input("Press Enter to complete...")
     except OperationalError as e:
         print(f"Error inserting records: {e}")
@@ -327,10 +384,16 @@ def orderdata():
       for x in range(conrecs): 
         ordernum = (fake.uuid4())
         orderdate = (fake.date_time_between_dates(datetime_start='-12w'),)
-        fakeitem = (fake.word(ext_word_list=['Polo Shirt','Travel Mug', 'Umbrella', 'Sunglasses', 'Water Bottle','Socks']))
-        fakecolor = (fake.safe_color_name())
-        fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
-        fakeunitcost = (fake.random_int(min=10, max=20))
+
+#### Select item to insert ####
+        fakeitem = f"""select unique_id from {dbforloading}.items order by random() limit 1""" 
+        cursor.execute(fakeitem)
+        fakeitem=cursor.fetchone()
+###################################################        
+        
+#        fakecolor = (fake.safe_color_name())
+#        fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
+#        fakeunitcost = (fake.random_int(min=10, max=20))
 #### Pull a single customer for the order data ####
         selcustomer = f"""select customerid from {dbforloading}.customers order by random() limit 1""" 
         cursor.execute(selcustomer)
@@ -344,9 +407,9 @@ def orderdata():
 ###################################################
         orderqty = (random.randint(1, 10))
         orderstage = (fake.word(ext_word_list=[ 'Picking', 'Awaiting Pickup', 'Quality Check', 'Packing', 'Shipped', 'Delivered', 'Returned' ]))
-        orderdatascript = f"INSERT INTO {dbforloading}.orders (orderid, customerid, orderdate, orderitem, qty, color, unitprice, size,agent, orderstage) \
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"   
-        cursor.execute(orderdatascript,(ordernum,customerselect,orderdate,fakeitem,orderqty,fakecolor,fakeunitcost,fakesize,agentselect,orderstage))
+        orderdatascript = f"INSERT INTO {dbforloading}.orders (orderid, customerid, orderdate, orderitem, qty, agent, orderstage) \
+            VALUES (%s,%s,%s,%s,%s,%s,%s)"   
+        cursor.execute(orderdatascript,(ordernum,customerselect,orderdate,fakeitem,orderqty,agentselect,orderstage))
       conn.commit()
       conn.close()   
       print (f"* {conrecs} Records Inserted *")
