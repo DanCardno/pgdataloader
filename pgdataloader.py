@@ -89,14 +89,27 @@ def createdb():
       cursor = conn.cursor()
       create_agents_query = f""" 
         CREATE TABLE IF NOT EXISTS {newdbname}.agents
-        (
-            agent_id uuid NOT NULL,
-            afname character varying(20) COLLATE pg_catalog."default",
-            alastname character varying(20) COLLATE pg_catalog."default",
-            aemail character varying(60) COLLATE pg_catalog."default",
-            alocation character varying(60) COLLATE pg_catalog."default",
-            CONSTRAINT agents_pkey PRIMARY KEY (agent_id)
-        )
+          (
+              agent_id uuid NOT NULL,
+              afname character varying(20) COLLATE pg_catalog."default",
+              alastname character varying(20) COLLATE pg_catalog."default",
+              aemail character varying(60) COLLATE pg_catalog."default",
+              alocation character varying(60) COLLATE pg_catalog."default",
+              CONSTRAINT agents_pkey PRIMARY KEY (agent_id)
+          )
+
+          TABLESPACE pg_default;
+
+          ALTER TABLE IF EXISTS {newdbname}.agents
+              OWNER to postgres;
+          -- Index: idx_agents_agentid
+
+          -- DROP INDEX IF EXISTS {newdbname}.idx_agents_agentid;
+
+          CREATE INDEX IF NOT EXISTS idx_agents_agentid
+              ON {newdbname}.agents USING btree
+              (agent_id ASC NULLS LAST)
+              TABLESPACE pg_default;
         """
       cursor.execute(create_agents_query)
       conn.commit()
@@ -118,17 +131,30 @@ def createdb():
       cursor = conn.cursor()
       create_customers_query = f""" 
         CREATE TABLE IF NOT EXISTS {newdbname}.customers
-        (
-            customerid uuid NOT NULL,
-            cfname character varying(20) COLLATE pg_catalog."default",
-            clname character varying(20) COLLATE pg_catalog."default",
-            cemail character varying(60) COLLATE pg_catalog."default",
-            caddress character varying(60) COLLATE pg_catalog."default",
-            cstate character varying(60) COLLATE pg_catalog."default",
-            lat double precision,
-            "long" double precision,
-            CONSTRAINT orders_pkey PRIMARY KEY (customerid)
-        )
+          (
+              customerid uuid NOT NULL,
+              cfname character varying(20) COLLATE pg_catalog."default",
+              clname character varying(20) COLLATE pg_catalog."default",
+              cemail character varying(60) COLLATE pg_catalog."default",
+              caddress character varying(60) COLLATE pg_catalog."default",
+              cstate character varying(60) COLLATE pg_catalog."default",
+              lat double precision,
+              "long" double precision,
+              CONSTRAINT customers_pkey PRIMARY KEY (customerid)
+          )
+
+          TABLESPACE pg_default;
+
+          ALTER TABLE IF EXISTS {newdbname}.customers
+              OWNER to postgres;
+          -- Index: idx_customers_id
+
+          -- DROP INDEX IF EXISTS {newdbname}.idx_customers_id;
+
+          CREATE INDEX IF NOT EXISTS idx_customers_id
+              ON {newdbname}.customers USING btree
+              (customerid ASC NULLS LAST)
+              TABLESPACE pg_default;
         """
       cursor.execute(create_customers_query)
       conn.commit()
@@ -151,7 +177,7 @@ def createdb():
         create_orders_query = f""" 
             CREATE TABLE IF NOT EXISTS {newdbname}.orders
             (
-                orderid uuid,
+                orderid uuid NOT NULL,
                 customerid uuid,
                 orderdate timestamp without time zone,
                 orderitem uuid,
@@ -165,6 +191,35 @@ def createdb():
                     ON UPDATE NO ACTION
                     ON DELETE NO ACTION
             )
+
+            TABLESPACE pg_default;
+
+            ALTER TABLE IF EXISTS {newdbname}.orders
+                OWNER to postgres;
+            -- Index: idx_orders_agent
+
+            -- DROP INDEX IF EXISTS {newdbname}.idx_orders_agent;
+
+            CREATE INDEX IF NOT EXISTS idx_orders_agent
+                ON {newdbname}.orders USING btree
+                (agent ASC NULLS LAST)
+                TABLESPACE pg_default;
+            -- Index: idx_orders_customer
+
+            -- DROP INDEX IF EXISTS {newdbname}.idx_orders_customer;
+
+            CREATE INDEX IF NOT EXISTS idx_orders_customer
+                ON {newdbname}.orders USING btree
+                (customerid ASC NULLS LAST)
+                TABLESPACE pg_default;
+            -- Index: idx_orders_id
+
+            -- DROP INDEX IF EXISTS {newdbname}.idx_orders_id;
+
+            CREATE INDEX IF NOT EXISTS idx_orders_id
+                ON {newdbname}.orders USING btree
+                (orderid ASC NULLS LAST)
+                TABLESPACE pg_default;
             """
         cursor.execute(create_orders_query)
         conn.commit()
@@ -172,6 +227,7 @@ def createdb():
         print('Orders Created')
     except psycopg2.Error as e:
         print(f"Error creating database: {e}")
+
 
     ######### CALLS TABLE #########
     conn = psycopg2.connect(database=newdbname, 
@@ -186,7 +242,7 @@ def createdb():
       create_calls_query = f""" 
             CREATE TABLE IF NOT EXISTS {newdbname}.calls
                 (
-                    callref uuid,
+                    callref uuid NOT NULL,
                     agent uuid,
                     customer uuid,
                     date timestamp without time zone,
@@ -195,8 +251,30 @@ def createdb():
                     reasoncode character varying(30) COLLATE pg_catalog."default",
                     resolved boolean,
                     answertime integer,
-                    calldirection character varying(11)
+                    calldirection character varying(11) COLLATE pg_catalog."default",
+                    CONSTRAINT calls_pkey PRIMARY KEY (callref)
                 )
+
+                TABLESPACE pg_default;
+
+                ALTER TABLE IF EXISTS {newdbname}.calls
+                    OWNER to postgres;
+                -- Index: idx_calls_agent
+
+                -- DROP INDEX IF EXISTS {newdbname}.idx_calls_agent;
+
+                CREATE INDEX IF NOT EXISTS idx_calls_agent
+                    ON {newdbname}.calls USING btree
+                    (agent ASC NULLS LAST)
+                    TABLESPACE pg_default;
+                -- Index: idx_calls_callref
+
+                -- DROP INDEX IF EXISTS {newdbname}.idx_calls_callref;
+
+                CREATE INDEX IF NOT EXISTS idx_calls_callref
+                    ON {newdbname}.calls USING btree
+                    (callref ASC NULLS LAST)
+                    TABLESPACE pg_default;
             """
       cursor.execute(create_calls_query)
       conn.commit()
@@ -219,17 +297,29 @@ def createdb():
       create_item_query = f""" 
             CREATE TABLE IF NOT EXISTS {newdbname}.items
               (
-                  item_id SERIAL PRIMARY KEY,             -- Unique identifier for the item
-                  unique_id UUID DEFAULT gen_random_uuid(), -- Universally unique identifier
-                  name VARCHAR(100) NOT NULL,            -- Item name
-                  color VARCHAR(50),                     -- Color of the item
-                  price NUMERIC(10, 2) NOT NULL,         -- Price of the item
-                  description TEXT,                      -- Description of the item
-                  category VARCHAR(50),                  -- Category to which the item belongs
-                  stock_quantity INT DEFAULT 0,          -- Quantity in stock
-                  created_at TIMESTAMP DEFAULT NOW(),    -- Timestamp when the item was created
-                  updated_at TIMESTAMP DEFAULT NOW()     -- Timestamp when the item was last updated
+                  item_id SERIAL PRIMARY KEY, unique_id uuid DEFAULT gen_random_uuid(),
+                  name character varying(100) COLLATE pg_catalog."default" NOT NULL,
+                  color character varying(50) COLLATE pg_catalog."default",
+                  price numeric(10,2) NOT NULL,
+                  description text COLLATE pg_catalog."default",
+                  category character varying(50) COLLATE pg_catalog."default",
+                  stock_quantity integer DEFAULT 0,
+                  created_at timestamp without time zone DEFAULT now(),
+                  updated_at timestamp without time zone DEFAULT now()
               )
+
+              TABLESPACE pg_default;
+
+              ALTER TABLE IF EXISTS {newdbname}.items
+                  OWNER to postgres;
+              -- Index: idx_items_id
+
+              -- DROP INDEX IF EXISTS {newdbname}.idx_items_id;
+
+              CREATE INDEX IF NOT EXISTS idx_items_id
+                  ON {newdbname}.items USING btree
+                  (unique_id ASC NULLS LAST)
+                  TABLESPACE pg_default;
             """
       cursor.execute(create_item_query)
       conn.commit()
@@ -238,6 +328,7 @@ def createdb():
       input("Done, press Enter to continue...")
     except psycopg2.Error as e:
       print(f"Error creating database: {e}")
+      input("Done, press Enter to continue...")
 
       global gldbname
       gldbname = newdbname
@@ -321,7 +412,6 @@ def loaddata():
       conn = psycopg2.connect(
       database=dbforloading, user=gluserer, password=glpasswd, host=glhost, port=glport
       )
-      print('Creating Stock Items...')
       conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
       cursor = conn.cursor()
       create_item_query = f"""             
@@ -340,7 +430,7 @@ def loaddata():
       cursor.execute(create_item_query)
       conn.commit()
       conn.close() 
-      print('Stock Items Added')
+      print('* Stock Items Added *')
 
 
 
