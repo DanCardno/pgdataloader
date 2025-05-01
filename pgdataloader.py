@@ -473,13 +473,14 @@ def orderdata():
       cursor = conn.cursor()
       for x in range(conrecs): 
         ordernum = (fake.uuid4())
-        orderdate = (fake.date_time_between_dates(datetime_start='-4w'),)
+        orderdate = (fake.date_time_between_dates(datetime_start='-4y'),)
 
 #### Select item to insert ####
         fakeitem = f"""select unique_id from {dbforloading}.items order by random() limit 1""" 
         cursor.execute(fakeitem)
         fakeitem=cursor.fetchone()
-###################################################        
+##################################################
+##        
         
 #        fakecolor = (fake.safe_color_name())
 #        fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
@@ -521,7 +522,7 @@ def orderdata():
         selectscript = f"""select agent_id from {dbforloading}.agents order by random() limit 1"""
         cursor.execute(selectscript)
         callagent=cursor.fetchone()[0]
-        calldate = (fake.date_time_between_dates(datetime_start='-4w'),)
+        calldate = (fake.date_time_between_dates(datetime_start='-4y'),)
 #### Pull a single customer for the call data ####
         cusselectscript = f"""select customerid from {dbforloading}.customers order by random() limit 1"""
         cursor.execute(cusselectscript)
