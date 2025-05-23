@@ -249,6 +249,7 @@ def createdb():
                     reason character varying(30) COLLATE pg_catalog."default",
                     duration integer,
                     reasoncode character varying(30) COLLATE pg_catalog."default",
+                    sentiment character varying(30) COLLATE pg_catalog."default",
                     resolved boolean,
                     answertime integer,
                     calldirection character varying(11) COLLATE pg_catalog."default",
@@ -473,7 +474,7 @@ def orderdata():
       cursor = conn.cursor()
       for x in range(conrecs): 
         ordernum = (fake.uuid4())
-        orderdate = (fake.date_time_between_dates(datetime_start='-4y'),)
+        orderdate = (fake.date_time_between_dates(datetime_start='-5d'),)
 
 #### Select item to insert ####
         fakeitem = f"""select unique_id from {dbforloading}.items order by random() limit 1""" 
@@ -522,7 +523,7 @@ def orderdata():
         selectscript = f"""select agent_id from {dbforloading}.agents order by random() limit 1"""
         cursor.execute(selectscript)
         callagent=cursor.fetchone()[0]
-        calldate = (fake.date_time_between_dates(datetime_start='-4y'),)
+        calldate = (fake.date_time_between_dates(datetime_start='-5d'),)
 #### Pull a single customer for the call data ####
         cusselectscript = f"""select customerid from {dbforloading}.customers order by random() limit 1"""
         cursor.execute(cusselectscript)
@@ -532,12 +533,13 @@ def orderdata():
         calldirection = "Inbound" if random.random() < th else "Outbound"
         callreason = (fake.word(ext_word_list=[ 'Billing Enquiry', 'Complaint', 'Bill Payment', 'Technical Support', 'Other']))
         callreasoncode = (fake.word(ext_word_list=[ 'Research', 'Documentation', 'Manager Escalation', 'Break', 'Transfer']))
-        callduration = (fake.random_int(min=100, max=2000))
+        callduration = (fake.random_int(min=50, max=500))
         callresolved = random.choice([True, False])
         callanswertime = (fake.random_int(min=10, max=20))
-        orderdatascript = f"INSERT INTO {dbforloading}.calls (callref, agent, customer, date, reason, duration, resolved, answertime, reasoncode,calldirection) \
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"   
-        cursor.execute(orderdatascript,(callref,callagent,callcustomer,calldate,callreason,callduration,callresolved,callanswertime,callreasoncode,calldirection))
+        callsentiment = (fake.word(ext_word_list=[ 'Happy', 'Frustrated', 'Angry', 'Distressed', 'Satisfied' ,'Dissapointed' ,'Relieved','Betrayed','Joyful']))
+        orderdatascript = f"INSERT INTO {dbforloading}.calls (callref, agent, customer, date, reason, duration, resolved, answertime, reasoncode,calldirection,sentiment) \
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"   
+        cursor.execute(orderdatascript,(callref,callagent,callcustomer,calldate,callreason,callduration,callresolved,callanswertime,callreasoncode,calldirection,callsentiment))
       conn.commit()
       conn.close()   
       print (f"* {conrecs} Records Inserted *")
