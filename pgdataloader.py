@@ -474,7 +474,7 @@ def orderdata():
       cursor = conn.cursor()
       for x in range(conrecs): 
         ordernum = (fake.uuid4())
-        orderdate = (fake.date_time_between_dates(datetime_start='-5d'),)
+        orderdate = (fake.date_time_between_dates(datetime_start='-1y'),)
 
 #### Select item to insert ####
         fakeitem = f"""select unique_id from {dbforloading}.items order by random() limit 1""" 
@@ -484,7 +484,7 @@ def orderdata():
 ##        
         
 #        fakecolor = (fake.safe_color_name())
-#        fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
+        fakesize = (fake.word(ext_word_list=[ 'Small', 'Medium', 'Large', 'X-Large', 'Kids']))
 #        fakeunitcost = (fake.random_int(min=10, max=20))
 #### Pull a single customer for the order data ####
         selcustomer = f"""select customerid from {dbforloading}.customers order by random() limit 1""" 
@@ -499,9 +499,9 @@ def orderdata():
 ###################################################
         orderqty = (random.randint(1, 10))
         orderstage = (fake.word(ext_word_list=[ 'Picking', 'Awaiting Pickup', 'Quality Check', 'Packing', 'Shipped', 'Delivered', 'Returned' ]))
-        orderdatascript = f"INSERT INTO {dbforloading}.orders (orderid, customerid, orderdate, orderitem, qty, agent, orderstage) \
-            VALUES (%s,%s,%s,%s,%s,%s,%s)"   
-        cursor.execute(orderdatascript,(ordernum,customerselect,orderdate,fakeitem,orderqty,agentselect,orderstage))
+        orderdatascript = f"INSERT INTO {dbforloading}.orders (orderid, customerid, orderdate, orderitem, qty, agent, orderstage,size) \
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"   
+        cursor.execute(orderdatascript,(ordernum,customerselect,orderdate,fakeitem,orderqty,agentselect,orderstage,fakesize))
       conn.commit()
       conn.close()   
       print (f"* {conrecs} Records Inserted *")
@@ -523,7 +523,7 @@ def orderdata():
         selectscript = f"""select agent_id from {dbforloading}.agents order by random() limit 1"""
         cursor.execute(selectscript)
         callagent=cursor.fetchone()[0]
-        calldate = (fake.date_time_between_dates(datetime_start='-5d'),)
+        calldate = (fake.date_time_between_dates(datetime_start='-1y'),)
 #### Pull a single customer for the call data ####
         cusselectscript = f"""select customerid from {dbforloading}.customers order by random() limit 1"""
         cursor.execute(cusselectscript)
