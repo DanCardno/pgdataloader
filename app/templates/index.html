@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <h1 class="text-3xl font-bold mb-8 text-gray-800">🐘 PG Data Loader</h1>
+
+    <!-- Connection Settings -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">🔌 Connection Settings</h2>
+        <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Host</label>
+                <input id="pg_host" value="db"
+                       class="border border-gray-300 p-2 rounded w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Port</label>
+                <input id="pg_port" value="5432"
+                       class="border border-gray-300 p-2 rounded w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Username</label>
+                <input id="pg_user" value="postgres"
+                       class="border border-gray-300 p-2 rounded w-full" />
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Password</label>
+                <input id="pg_password" type="password" value="postgres"
+                       class="border border-gray-300 p-2 rounded w-full" />
+            </div>
+        </div>
+        <button onclick="loadDatabases()"
+                class="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded w-full">
+            Connect & Load Databases
+        </button>
+    </div>
+
+    <!-- Create DB -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">1. Create Database</h2>
+        <form id="create-db-form">
+            <input name="dbname" id="new_dbname"
+                   class="border border-gray-300 p-2 rounded w-full mb-3"
+                   placeholder="New database name" required/>
+            <button type="button" onclick="createDatabase()"
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                Create Database
+            </button>
+        </form>
+    </div>
+
+    <!-- Seed Agents & Customers -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">2. Seed Agents & Customers</h2>
+        <form id="seed-data-form">
+            <div id="db-selector-seed" class="mb-3">
+                <p class="text-gray-400 text-sm">Connect to a Postgres instance above first</p>
+            </div>
+            <button type="button" onclick="seedData()"
+                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+                Seed Agents & Customers
+            </button>
+        </form>
+    </div>
+
+    <!-- Seed Orders & Calls -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-700">3. Seed Orders & Calls</h2>
+        <form id="seed-orders-form">
+            <div id="db-selector-orders" class="mb-3">
+                <p class="text-gray-400 text-sm">Connect to a Postgres instance above first</p>
+            </div>
+            <input name="records" id="records" type="number" min="1"
+                   class="border border-gray-300 p-2 rounded w-full mb-3"
+                   placeholder="Number of records to generate" required/>
+            <button type="button" onclick="seedOrders()"
+                    class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded">
+                Seed Orders & Calls
+            </button>
+        </form>
+    </div>
+
+    <!-- Result -->
+    <div id="result" class="mt-4 p-4 text-sm text-gray-700"></div>
+</div>
+
+<script>
+    function getConnParams() {
+        return new URLSearchParams({
+            host: document.getElementById('pg_host').value,
+            port: document.getElementById('pg_port').value,
+            user: document.getElementById('pg_user').value,
+            password: document.getElementById('pg_password').value,
+        });
+    }
+
+    function buildDropdown(databases, name) {
+        if (!databases.length) {
+            return '<p class="text-gray-400 text-sm">No databases found</p>';
+        }
+        const options = databases.map(db =>
+            `<option value="${db}">${db}</option>`
+        ).join('');
+        return `<select name="${name}" class="border border-gray-300 p-2 rounded w-full">${options}</select>`;
+    }
+
+    async function loadDatabases() {
+        const params = getConnParams();
+        const res = await fetch('/databases', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params
+        });
+        const data = await res.json();
+        document.getElementById('db-selector-seed').innerHTML = buildDropdown(data.databases, 'dbname');
+        document.getElementById('db-selector-orders').innerHTML = buildDropdown(data.databases, 'dbname');
+    }
+
+    async function createDatabase() {
+        const params = getConnParams();
+        params.append('dbname', document.getElementById('new_dbname').value);
+        const res = await fetch('/create-db', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params
+        });
+        const html = await res.text();
+        document.getElementById('result').innerHTML = html;
+        loadDatabases();
+    }
+
+    async function seedData() {
+        const params = getConnParams();
+        const select = document.querySelector('#db-selector-seed select');
+        if (!select) { alert('Connect to a database first'); return; }
+        params.append('dbname', select.value);
+        const res = await fetch('/seed-data', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params
+        });
+        const html = await res.text();
+        document.getElementById('result').innerHTML = html;
+    }
+
+    async function seedOrders() {
+        const params = getConnParams();
+        const select = document.querySelector('#db-selector-orders select');
+        if (!select) { alert('Connect to a database first'); return; }
+        params.append('dbname', select.value);
+        params.append('records', document.getElementById('records').value);
+        const res = await fetch('/seed-orders', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: params
+        });
+        const html = await res.text();
+        document.getElementById('result').innerHTML = html;
+    }
+</script>
+{% endblock %}
