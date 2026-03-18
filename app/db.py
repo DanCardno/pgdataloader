@@ -6,7 +6,7 @@ def get_connection(database="postgres", host=None, port=None, user=None, passwor
         database=database,
         user=user or os.getenv("PG_USER", "postgres"),
         password=password or os.getenv("PG_PASSWORD", "postgres"),
-        host=host or os.getenv("PG_HOST", "db"),
+        host=host or os.getenv("PG_HOST", ""),
         port=port or os.getenv("PG_PORT", "5432")
     )
 

@@ -1,0 +1,7 @@
+import os
+
+SERVER_MODE = True
+DEFAULT_SERVER = '0.0.0.0'
+DEFAULT_SERVER_PORT = 5050
+PGADMIN_SETUP_EMAIL = 'admin@admin.com'
+PGADMIN_SETUP_PASSWORD = 'admin'
